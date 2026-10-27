@@ -1,0 +1,796 @@
+{
+  "info": {
+    "name": "MEKO – Customer API",
+    "description": "رحلة العميلة كاملة بالترتيب. شغّلي الـ requests من فوق لتحت: كل request بيحفظ القيم اللي اللي بعده محتاجها (token، كود الطلب، الـ IDs) في الـ Environment لوحده.\n\nقبل ما تبدئي: اختاري Environment اسمه \"MEKO – Local\" من فوق على اليمين.\n\nكل الأخطاء بترجع بالشكل: { statusCode, code, message } والـ message جاهزة تتعرض للعميلة.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1 · Public (الكتالوج والمحتوى)",
+      "item": [
+        {
+          "name": "Health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Catalog",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "if (pm.response.code < 300) {",
+                  "  const j = pm.response.json();",
+                  "  const p = j.pieceTypes.find(x => x.slug === 'necklace') || j.pieceTypes[0];",
+                  "  const st = p.styles.find(s => s.isStoryDesign) || p.styles[0];",
+                  "  pm.environment.set('pieceTypeId', p.id);",
+                  "  pm.environment.set('styleId', st.id);",
+                  "  pm.environment.set('colorOptionId', p.colors.length ? p.colors[0].id : '');",
+                  "  pm.environment.set('lengthOptionId', p.lengths.length ? p.lengths[0].id : '');",
+                  "  pm.environment.set('symbolId', j.symbols[0].id);",
+                  "  pm.environment.set('chipId', j.chips.zodiac[0].id);",
+                  "  pm.environment.set('questionId', j.guidingQuestions[0].id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/catalog",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "catalog"
+              ]
+            },
+            "description": "كل اللي صفحات اختيار القطعة والقصة محتاجاه. الـ test بيختار سلسلة + \"تصميم من قصتك\" + أول لون وطول ويحفظهم."
+          }
+        },
+        {
+          "name": "Stories (من القصة للقطعة)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/stories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "stories"
+              ]
+            }
+          }
+        },
+        {
+          "name": "FAQs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/faqs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "faqs"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Shipping zones",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/shipping-zones",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "shipping-zones"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 · Order flow (إنشاء الطلب)",
+      "item": [
+        {
+          "name": "Quote (السعر أثناء الاختيار)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/quote",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "quote"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pieceTypeId\": \"{{pieceTypeId}}\",\n  \"styleId\": \"{{styleId}}\",\n  \"colorOptionId\": \"{{colorOptionId}}\",\n  \"lengthOptionId\": \"{{lengthOptionId}}\",\n  \"governorate\": \"{{governorate}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Upload inspiration photo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "if (pm.response.code < 300) {",
+                  "  pm.environment.set('uploadIdsJson', JSON.stringify([pm.response.json().uploadId]));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/uploads",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "uploads"
+              ]
+            },
+            "description": "multipart/form-data. في Postman: لو الصورة مش ظاهرة، دوسي على Select Files واختاري أي صورة. الـ uploadId بيتحفظ لوحده ويتبعت مع إنشاء الطلب.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "kind",
+                  "value": "INSPIRATION",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "postman/sample-inspiration.png"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create order – For me",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "if (pm.response.code < 300) {",
+                  "  const j = pm.response.json();",
+                  "  pm.environment.set('token', j.token);",
+                  "  pm.environment.set('orderCode', j.code);",
+                  "  pm.environment.set('uploadIdsJson', '[]');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "description": "بيرجّع code + token. الـ token بيتحفظ ويستخدم في كل requests الـ My order.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"FOR_ME\",\n  \"customer\": { \"name\": \"سارة\", \"phone\": \"{{phone}}\" },\n  \"shipping\": { \"governorate\": \"{{governorate}}\", \"city\": \"مدينة نصر\", \"address\": \"شارع عباس العقاد، عمارة 5\" },\n  \"piece\": {\n    \"pieceTypeId\": \"{{pieceTypeId}}\",\n    \"styleId\": \"{{styleId}}\",\n    \"colorOptionId\": \"{{colorOptionId}}\",\n    \"lengthOptionId\": \"{{lengthOptionId}}\",\n    \"engravingName\": \"Sara\"\n  },\n  \"story\": \"بحب البحر جداً وبروح إسكندرية كل صيف، برجي الحوت، وبحب القهوة الصبح والقراءة.\",\n  \"symbolIds\": [\"{{symbolId}}\"],\n  \"chipIds\": [\"{{chipId}}\"],\n  \"guidingAnswers\": [{ \"questionId\": \"{{questionId}}\", \"answer\": \"بقرا وبرسم\" }],\n  \"uploadIds\": {{uploadIdsJson}},\n  \"acceptPolicy\": true,\n  \"sessionId\": \"postman-session-0001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Create order – Gift",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "if (pm.response.code < 300) {",
+                  "  const j = pm.response.json();",
+                  "  pm.environment.set('giftToken', j.token);",
+                  "  pm.environment.set('giftOrderCode', j.code);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "description": "نفس الطلب كهدية. relationship: MOTHER | PARTNER | SISTER | FRIEND | OTHER. (بيغيّر الـ token للطلب الجديد)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"GIFT\",\n  \"customer\": { \"name\": \"سارة\", \"phone\": \"{{phone}}\" },\n  \"shipping\": { \"governorate\": \"{{governorate}}\", \"address\": \"شارع عباس العقاد، عمارة 5\" },\n  \"piece\": {\n    \"pieceTypeId\": \"{{pieceTypeId}}\",\n    \"styleId\": \"{{styleId}}\",\n    \"colorOptionId\": \"{{colorOptionId}}\",\n    \"lengthOptionId\": \"{{lengthOptionId}}\"\n  },\n  \"gift\": { \"relationship\": \"MOTHER\", \"recipientName\": \"ماما\", \"message\": \"كل سنة وانتي طيبة\" },\n  \"story\": \"ماما بتحب الورد والقهوة وبتصحى بدري تسقي الزرع كل يوم.\",\n  \"acceptPolicy\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Access order (code + phone)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "if (pm.response.code < 300) {",
+                  "  pm.environment.set('token', pm.response.json().token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/orders/access",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "orders",
+                "access"
+              ]
+            },
+            "description": "صفحة \"تابعي طلبك\" أو لينك الواتساب: الكود + الموبايل ← token جديد. محدودة بـ 5 محاولات في الدقيقة.",
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"code\": \"{{orderCode}}\", \"phone\": \"{{phone}}\" }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 · My order (طلب العميلة – محتاج token)",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "Get my order (ملخص + تتبع)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/my-order",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my-order"
+              ]
+            },
+            "description": "nextAction: PAY_DEPOSIT | REVIEW_DESIGN | PAY_REMAINING | WAIT_FOR_NEW_VERSION | WAIT"
+          }
+        },
+        {
+          "name": "Start deposit payment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "if (pm.response.code < 300) {",
+                  "  const j = pm.response.json();",
+                  "  pm.environment.set('paymentId', j.paymentId);",
+                  "  pm.environment.set('paymentAmount', String(j.amount.piasters));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/my-order/payments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my-order",
+                "payments"
+              ]
+            },
+            "description": "kind: DEPOSIT | FULL. الفرونت يعمل redirect على checkoutUrl. محلياً: شغّلي \"Dev · Confirm payment\" بعدها.",
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"kind\": \"DEPOSIT\" }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get design (مراجعة التصميم)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "if (pm.response.code < 300) {",
+                  "  pm.environment.set('versionId', pm.response.json().versionId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/my-order/design",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my-order",
+                "design"
+              ]
+            },
+            "description": "محتاج تصميم يكون اترفع. محلياً: npm run dev:deliver-design {{orderCode}}"
+          }
+        },
+        {
+          "name": "Request edit (طلب تعديل)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/my-order/design/edit-requests",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my-order",
+                "design",
+                "edit-requests"
+              ]
+            },
+            "description": "categories: NAME | SYMBOLS | SIZE | PLACEMENT | DETAILS | OTHER. لحد 3 تعديلات، الرابع بيرجع 409 ومعاه whatsappUrl.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categories\": [\"SYMBOLS\", \"SIZE\"],\n  \"text\": \"عايزة الموجة تبقى أصغر وتيجي جنب الكتاب\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Approve design (اعتماد)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/my-order/design/approve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my-order",
+                "design",
+                "approve"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"versionId\": \"{{versionId}}\" }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Start remaining payment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "if (pm.response.code < 300) {",
+                  "  const j = pm.response.json();",
+                  "  pm.environment.set('paymentId', j.paymentId);",
+                  "  pm.environment.set('paymentAmount', String(j.amount.piasters));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/my-order/payments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my-order",
+                "payments"
+              ]
+            },
+            "description": "بعد الاعتماد بس.",
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"kind\": \"REMAINING\" }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "WhatsApp link",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/my-order/whatsapp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "my-order",
+                "whatsapp"
+              ]
+            },
+            "description": "متاح بعد أول تصميم بس."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4 · Analytics",
+      "item": [
+        {
+          "name": "Track event",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('204', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "events"
+              ]
+            },
+            "description": "name: story_started | customization_completed | review_reached | payment_reached | payment_started | whatsapp_clicked. sessionId = id عشوائي الفرونت بيحفظه لكل زيارة.",
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"name\": \"payment_reached\", \"sessionId\": \"postman-session-0001\", \"orderCode\": \"{{orderCode}}\" }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5 · Dev only (محلي بس)",
+      "description": "بيمثّل بوابة الدفع التجريبية (PAYMENT_PROVIDER=mock). مش بيشتغل في production.",
+      "item": [
+        {
+          "name": "Dev · Confirm payment (mock webhook)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = JSON.stringify({",
+                  "  paymentId: pm.environment.get('paymentId'),",
+                  "  status: pm.environment.get('mockPaymentStatus') || 'PAID',",
+                  "  amount: Number(pm.environment.get('paymentAmount'))",
+                  "});",
+                  "pm.environment.set('mockWebhookBody', body);",
+                  "const sig = CryptoJS.HmacSHA256(body, pm.environment.get('webhookSecret')).toString(CryptoJS.enc.Hex);",
+                  "pm.request.headers.upsert({ key: 'x-mock-signature', value: sig });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payments/webhook/mock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payments",
+                "webhook",
+                "mock"
+              ]
+            },
+            "description": "بيأكد آخر payment اتعمل (paymentId). غيّري mockPaymentStatus لـ FAILED لتجربة فشل الدفع.",
+            "body": {
+              "mode": "raw",
+              "raw": "{{mockWebhookBody}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

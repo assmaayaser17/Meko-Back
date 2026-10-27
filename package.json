@@ -1,0 +1,52 @@
+{
+  "name": "meko-backend",
+  "version": "0.1.0",
+  "description": "MEKO Accessoriez — customer-facing API (NestJS + PostgreSQL + Drizzle)",
+  "scripts": {
+    "build": "nest build",
+    "start": "node dist/main.js",
+    "dev": "nest start --watch",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/db/migrate.ts",
+    "db:seed": "tsx src/db/seed.ts",
+    "dev:deliver-design": "tsx scripts/dev-deliver-design.ts",
+    "test:e2e": "node scripts/e2e-flow.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "dev:pay": "node scripts/dev-pay.mjs",
+    "start:render": "node dist/db/migrate.js && node dist/db/seed.js && node dist/main.js"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.2.8",
+    "@nestjs/core": "^11.2.8",
+    "@nestjs/jwt": "^11.0.2",
+    "@nestjs/platform-express": "^11.2.8",
+    "@nestjs/schedule": "^6.1.3",
+    "@nestjs/throttler": "^6.7.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "dotenv": "^18.0.9",
+    "drizzle-orm": "^0.45.4",
+    "helmet": "^8.3.0",
+    "multer": "^2.5.0",
+    "pg": "^8.23.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.24",
+    "@types/express": "^5.0.6",
+    "@types/multer": "^2.3.0",
+    "@types/node": "^22.20.5",
+    "@types/pg": "^8.23.1",
+    "drizzle-kit": "^0.31.11",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.23.15",
+    "typescript": "~5.9"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  }
+}

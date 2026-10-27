@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: meko
+      POSTGRES_PASSWORD: meko
+      POSTGRES_DB: meko
+    ports:
+      - "5432:5432"
+    volumes:
+      - meko_pg:/var/lib/postgresql/data
+
+volumes:
+  meko_pg:
